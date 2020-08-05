@@ -16,17 +16,20 @@ var (
 	password string
 	commands string
 	timeout  int
+	tail     = []byte{0x00, 0x00}
 )
 
-func initPropertiesFromEnv() {
-	address = os.Getenv("PLUGIN_ADDRESS")
-	password = os.Getenv("PLUGIN_PASSWORD")
-	commands = os.Getenv("PLUGIN_COMMANDS")
-	t, err := strconv.Atoi(os.Getenv("PLUGIN_TIMEOUT"))
-	if err != nil {
-		fmt.Println("PLUGIN_TIMEOUT convert err:", err)
-	}
-	timeout = t
+const(
+	defaultTimeout = 60
+)
+
+//Packet data struct about rcon
+type Packet struct {
+	size        uint32
+	id          int32
+	_type       uint32
+	body        []byte
+	emptyString []byte
 }
 
 func main() {
@@ -50,16 +53,20 @@ func main() {
 	}
 }
 
-//Packet data struct about rcon
-type Packet struct {
-	size        uint32
-	id          int32
-	_type       uint32
-	body        []byte
-	emptyString []byte
+func initPropertiesFromEnv() {
+	address = os.Getenv("PLUGIN_ADDRESS")
+	password = os.Getenv("PLUGIN_PASSWORD")
+	commands = os.Getenv("PLUGIN_COMMANDS")
+	t, err := strconv.Atoi(os.Getenv("PLUGIN_TIMEOUT"))
+	if err != nil {
+		fmt.Println("PLUGIN_TIMEOUT convert err:", err)
+		fmt.Println("use default timeout")
+		timeout = defaultTimeout
+	}else {
+		timeout = t
+	}
+	
 }
-
-var tail = []byte{0x00, 0x00}
 
 func login(password string, conn net.Conn) bool {
 	passwordBytes := []byte(password)
